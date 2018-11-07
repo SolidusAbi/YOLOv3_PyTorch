@@ -73,11 +73,17 @@ def train(config):
                                     config["yolo"]["classes"], (config["img_w"], config["img_h"])))
 
     # DataLoader
-    dataloader = torch.utils.data.DataLoader(COCODataset(config["train_path"],
+    # dataloader = torch.utils.data.DataLoader(COCODataset(config["train_path"],
+    #                                                      (config["img_w"], config["img_h"]),
+    #                                                      is_training=True),
+    #                                          batch_size=config["batch_size"],
+    #                                          shuffle=True, num_workers=32, pin_memory=True)
+
+    dataloader = torch.utils.data.DataLoader(CustomDataset(config["train_path"],
                                                          (config["img_w"], config["img_h"]),
                                                          is_training=True),
                                              batch_size=config["batch_size"],
-                                             shuffle=True, num_workers=32, pin_memory=True)
+                                             shuffle=True, num_workers=32, pin_memory=True)    
 
     # Start the training loop
     logging.info("Start training.")

@@ -60,6 +60,41 @@ class COCODataset(Dataset):
         return len(self.img_files)
 
 
+'''
+Important! The txt who contains the list of images files must uses a relative path. 
+This class will transform this information to absolute path.
+'''
+class CustomDataset(COCODataset):
+    def __init__(self, list_path, img_size, is_training, is_debug=False):
+        self.img_files = []
+        self.label_files = []
+        absolute_path = os.path.abspath(os.path.join(os.path.dirname(list_path), ".."))
+        for image_path in open(list_path, 'r'):
+            label_path = image_path.replace('.png', '.txt').replace(
+                '.jpg', '.txt').strip()
+
+            label_path = os.path.join(absolute_path, label_path)
+            image_path = os.path.join(absolute_path, image_path)
+
+            if os.path.isfile(label_path):
+                self.img_files.append(image_path)
+                self.label_files.append(label_path)
+            else:
+                logging.info("no label found. skip it: {}".format(label_path))
+        logging.info("Total images: {}".format(len(self.img_files)))
+        self.img_size = img_size  # (w, h)
+        self.max_objects = 50
+        self.is_debug = is_debug
+
+        #  transforms and augmentation
+        self.transforms = data_transforms.Compose()
+        if is_training:
+            self.transforms.add(data_transforms.ImageBaseAug())
+        # self.transforms.add(data_transforms.KeepAspect())
+        self.transforms.add(data_transforms.ResizeImage(self.img_size))
+        self.transforms.add(data_transforms.ToTensor(self.max_objects, self.is_debug))
+
+
 #  use for test dataloader
 if __name__ == "__main__":
     dataloader = torch.utils.data.DataLoader(COCODataset("../data/coco/trainvalno5k.txt",
